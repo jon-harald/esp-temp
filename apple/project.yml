@@ -26,12 +26,17 @@ targets:
       - Sources/App
     settings:
       base:
+        GENERATE_INFOPLIST_FILE: "NO"
         PRODUCT_BUNDLE_IDENTIFIER: no.brathen.esptemp
         CODE_SIGN_ENTITLEMENTS: Supporting/EspTemp.entitlements
         TARGETED_DEVICE_FAMILY: "1,2"
-        INFOPLIST_KEY_CFBundleDisplayName: Temp
-        INFOPLIST_KEY_UILaunchScreen_Generation: "YES"
-        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: "YES"
+    info:
+      path: Supporting/App-Info.plist
+      properties:
+        CFBundleDisplayName: Temp
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
     dependencies:
       - target: EspTempWatch
 
@@ -44,11 +49,15 @@ targets:
       - Sources/Watch
     settings:
       base:
+        GENERATE_INFOPLIST_FILE: "NO"
         PRODUCT_BUNDLE_IDENTIFIER: no.brathen.esptemp.watchkitapp
         CODE_SIGN_ENTITLEMENTS: Supporting/EspTempWatch.entitlements
-        INFOPLIST_KEY_CFBundleDisplayName: Temp
-        INFOPLIST_KEY_WKApplication: "YES"
-        INFOPLIST_KEY_WKCompanionAppBundleIdentifier: no.brathen.esptemp
+    info:
+      path: Supporting/Watch-Info.plist
+      properties:
+        CFBundleDisplayName: Temp
+        WKApplication: true
+        WKCompanionAppBundleIdentifier: no.brathen.esptemp
     dependencies:
       - target: EspTempComplication
 
