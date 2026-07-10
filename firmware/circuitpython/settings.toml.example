@@ -1,0 +1,5 @@
+# Copy to settings.toml on the CIRCUITPY drive and fill in your values.
+CIRCUITPY_WIFI_SSID = "your-wifi-ssid"       # 2.4 GHz only on ESP32-S3
+CIRCUITPY_WIFI_PASSWORD = "your-wifi-password"
+AIO_USERNAME = "your-aio-username"
+AIO_KEY = "aio_xxxxxxxxxxxxxxxxxxxxxxxxxxxx"

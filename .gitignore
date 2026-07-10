@@ -1,0 +1,23 @@
+# ---- Secrets (never commit) ----
+firmware/arduino/esp_temp/secrets.h
+firmware/circuitpython/settings.toml
+apple/**/Secrets.xcconfig
+
+# ---- Firmware build output ----
+build/
+firmware/**/build/
+
+# ---- Apple / Xcode ----
+# XcodeGen generates the .xcodeproj from project.yml -- run `xcodegen generate`.
+apple/*.xcodeproj
+DerivedData/
+*.xcuserstate
+xcuserdata/
+.swiftpm/
+*.xcworkspace/xcuserdata/
+
+# ---- macOS ----
+.DS_Store
+
+# ---- Local tooling ----
+.claude/settings.local.json
