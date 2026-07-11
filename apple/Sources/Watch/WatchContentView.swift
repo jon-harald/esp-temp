@@ -38,6 +38,10 @@ struct WatchContentView: View {
             .onChange(of: store.state) { _, newValue in
                 if newValue == .loaded { WidgetCenter.shared.reloadAllTimelines() }
             }
+            .onReceive(NotificationCenter.default.publisher(for: .credentialsUpdated)) { _ in
+                store.reloadCredentialFlag()
+                Task { await store.refresh() }
+            }
         }
     }
 }

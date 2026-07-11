@@ -64,6 +64,7 @@ struct SettingsView: View {
             humidityFeed: humidityFeed.trimmingCharacters(in: .whitespaces)
         ))
         WidgetCenter.shared.reloadAllTimelines()
+        WatchSync.shared.sendCredentials()   // push key to the paired Apple Watch
         dismiss()
     }
 }
