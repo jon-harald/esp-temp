@@ -20,3 +20,4 @@ xcuserdata/
 
 # ---- Local tooling ----
 .claude/settings.local.json
+.serena/
