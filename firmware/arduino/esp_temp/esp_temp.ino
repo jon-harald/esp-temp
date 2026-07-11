@@ -205,6 +205,13 @@ void setup() {
 
   // ---- Sensors ----
   Wire.begin();  // STEMMA QT: SDA=3, SCL=4 (GPIO7 powered by initVariant)
+
+  // Start the fuel gauge FIRST: begin() resets the MAX17048, and its first ADC
+  // conversion lands ~250 ms after reset. We read it after the WiFi connect
+  // (which always takes >= ~1 s), so the conversion is done by then for free.
+  bool haveBatt = maxlipo.begin();
+  unsigned long battStarted = millis();
+
   if (!sht4.begin()) failSleep("SHT4x not found (check STEMMA QT cable)");
   sht4.setPrecision(SHT4X_HIGH_PRECISION);
   sht4.setHeater(SHT4X_NO_HEATER);
@@ -213,19 +220,22 @@ void setup() {
   if (!sht4.getEvent(&humidity_evt, &temp_evt)) failSleep("SHT4x read failed");
   float tC = temp_evt.temperature;
   float rh = humidity_evt.relative_humidity;
+  Serial.printf("Temp: %.2f C   RH: %.2f %%\n", tC, rh);
 
-  bool haveBatt = maxlipo.begin();
-  float vbat = 0, soc = 0;
-  if (haveBatt) {
-    vbat = maxlipo.cellVoltage();
-    soc = min(maxlipo.cellPercent(), 100.0f);  // gauge reports >100% on USB/full
-    maxlipo.hibernate();  // ~23 uA -> ~4 uA; it keeps tracking from VBAT
-  }
-  Serial.printf("Temp: %.2f C   RH: %.2f %%   Batt: %.2f V %.1f %%\n", tC, rh, vbat, soc);
-
-  // ---- Network + publish ----
+  // ---- Network ----
   if (!connectWiFi()) failSleep("WiFi connect timeout");
   if (millis() > AWAKE_BUDGET_MS) failSleep("awake budget exceeded");
+
+  // ---- Battery (first conversion is ready by now; belt-and-suspenders wait) ----
+  float vbat = 0, soc = 0;
+  if (haveBatt) {
+    while (millis() - battStarted < 400) delay(10);
+    vbat = maxlipo.cellVoltage();
+    soc = min(maxlipo.cellPercent(), 100.0f);  // gauge reports >100% on USB/full
+    maxlipo.hibernate();  // ~23 uA -> ~4 uA during our sleep; it runs from VBAT
+    if (vbat < 0.5f) haveBatt = false;  // implausible read: skip battery feeds this cycle
+    Serial.printf("Batt: %.2f V  %.1f %%\n", vbat, soc);
+  }
   if (!publish(tC, rh, haveBatt, vbat, soc)) {
     rtc.valid = false;  // maybe the cached lease went bad; redo DHCP next time
     failSleep("publish failed");
