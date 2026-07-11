@@ -169,16 +169,18 @@ static bool publish(float tC, float rh, bool haveBatt, float vbat, float soc) {
   http.addHeader("X-AIO-Key", aioKey);
   http.addHeader("Connection", "close");
 
-  char body[320];
-  if (haveBatt)
-    snprintf(body, sizeof(body),
-      "{\"feeds\":[{\"key\":\"temperature\",\"value\":\"%.2f\"},{\"key\":\"humidity\",\"value\":\"%.2f\"},"
-      "{\"key\":\"esp-battery-v\",\"value\":\"%.2f\"},{\"key\":\"esp-battery-pct\",\"value\":\"%.1f\"}]}",
-      tC, rh, vbat, soc);
-  else
-    snprintf(body, sizeof(body),
-      "{\"feeds\":[{\"key\":\"temperature\",\"value\":\"%.2f\"},{\"key\":\"humidity\",\"value\":\"%.2f\"}]}",
+  char body[384];
+  int n = snprintf(body, sizeof(body),
+      "{\"feeds\":[{\"key\":\"temperature\",\"value\":\"%.2f\"},{\"key\":\"humidity\",\"value\":\"%.2f\"}",
       tC, rh);
+  if (haveBatt)
+    n += snprintf(body + n, sizeof(body) - n,
+      ",{\"key\":\"esp-battery-v\",\"value\":\"%.2f\"},{\"key\":\"esp-battery-pct\",\"value\":\"%.1f\"}",
+      vbat, soc);
+  if (coldBoot)  // report firmware version on power-on / after an OTA reboot
+    n += snprintf(body + n, sizeof(body) - n,
+      ",{\"key\":\"esp-fw\",\"value\":\"%s\"}", FIRMWARE_VERSION);
+  snprintf(body + n, sizeof(body) - n, "]}");
 
   int code = http.POST((uint8_t *)body, strlen(body));
   http.end();
