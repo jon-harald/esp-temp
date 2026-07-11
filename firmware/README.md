@@ -2,8 +2,29 @@
 
 Reads temperature + humidity from an **Adafruit SHT45** (product 5665) over STEMMA QT (I²C) plus
 **battery voltage + %** from the board's onboard **MAX17048** fuel gauge, on an **Adafruit Feather
-ESP32-S3** (4 MB Flash / 2 MB PSRAM, product 5477), and publishes to **Adafruit IO** over MQTT/TLS.
-Feeds: `temperature`, `humidity`, `esp-battery-v`, `esp-battery-pct`.
+ESP32-S3** (4 MB Flash / 2 MB PSRAM, product 5477), and publishes to **Adafruit IO** with a single
+HTTPS POST (group endpoint). Feeds: `temperature`, `humidity`, `esp-battery-v`, `esp-battery-pct`.
+
+## Power design: adaptive deep sleep
+The firmware wakes, reads, publishes and goes back to **deep sleep** (~0.1 mA board-level). The
+interval adapts to temperature — dense measurements exactly when a parked car is getting dangerous:
+
+| Temperature | Wake interval |
+|---|---|
+| ≥ 30 °C | 60 s |
+| 25–30 °C | 2 min |
+| < 25 °C | 5 min |
+| battery < 10 % | intervals ×3 |
+| failed cycle | retry in 60 s (3+ fails → 10 min backoff) |
+
+Expected battery life: **weeks to ~2 months** depending on LiPo size and how often it runs hot
+(vs ~2 days for the old always-on MQTT build). Wake time is minimized by caching the DHCP lease +
+AP channel/BSSID in RTC memory (fast reconnect ~1 s), publishing all feeds in one HTTPS request,
+80 MHz CPU, hibernating the fuel gauge, and only blinking the NeoPixel briefly.
+
+> **USB behavior:** while sleeping the USB port is off, so the board disappears/reappears every
+> cycle — that's normal. Serial waits for a host only on cold boot (RESET); timer wakes don't stall.
+> Tune thresholds/intervals via the `TEMP_*` / `SLEEP_*` defines at the top of the sketch.
 
 - Dashboard: <https://io.adafruit.com/jonharald/dashboards/esp32-temperatur>
 - Raw feed:  <https://io.adafruit.com/jonharald/feeds/temperature>
