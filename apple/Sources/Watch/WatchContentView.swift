@@ -4,6 +4,7 @@ import WidgetKit
 struct WatchContentView: View {
     @State private var store = TemperatureStore()
     @State private var showBatteryVolts = false
+    @Environment(\.scenePhase) private var scenePhase
 
     private var batteryText: String {
         if showBatteryVolts {
@@ -71,8 +72,17 @@ struct WatchContentView: View {
                 }
             }
             .navigationTitle("Temp")
-            .task { await store.refresh() }
+            .task {
+                await store.refresh()
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .seconds(30))
+                    if !Task.isCancelled { await store.refresh() }
+                }
+            }
             .refreshable { await store.refresh() }
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .active { Task { await store.refresh() } }
+            }
             .onChange(of: store.state) { _, newValue in
                 if newValue == .loaded { WidgetCenter.shared.reloadAllTimelines() }
             }

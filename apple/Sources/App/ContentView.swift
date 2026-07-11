@@ -6,6 +6,9 @@ struct ContentView: View {
     @State private var store = TemperatureStore()
     @State private var showingSettings = false
     @State private var showBatteryVolts = false
+    @Environment(\.scenePhase) private var scenePhase
+
+    private let refreshInterval: Duration = .seconds(30)
 
     var body: some View {
         NavigationStack {
@@ -30,8 +33,17 @@ struct ContentView: View {
             }) {
                 SettingsView()
             }
-            .task { await store.refresh() }
+            .task {
+                await store.refresh()
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: refreshInterval)
+                    if !Task.isCancelled { await store.refresh() }
+                }
+            }
             .refreshable { await store.refresh() }
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .active { Task { await store.refresh() } }
+            }
         }
     }
 
