@@ -30,6 +30,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: no.brathen.esptemp
         CODE_SIGN_ENTITLEMENTS: Supporting/EspTemp.entitlements
         TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     info:
       path: Supporting/App-Info.plist
       properties:
@@ -52,6 +53,7 @@ targets:
         GENERATE_INFOPLIST_FILE: "NO"
         PRODUCT_BUNDLE_IDENTIFIER: no.brathen.esptemp.watchkitapp
         CODE_SIGN_ENTITLEMENTS: Supporting/EspTempWatch.entitlements
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     info:
       path: Supporting/Watch-Info.plist
       properties:
