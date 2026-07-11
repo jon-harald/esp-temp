@@ -9,13 +9,13 @@ every 30 s. Feeds: `temperature`, `humidity`, `esp-battery-v`, `esp-battery-pct`
 - Raw feed:  <https://io.adafruit.com/jonharald/feeds/temperature>
 
 ## Two firmware options
-The board currently runs the **CircuitPython** version. Both self-heal: they power the STEMMA QT bus and
+The board currently runs the **Arduino** version. Both self-heal: they power the STEMMA QT bus and
 wait for the SHT45 to appear before publishing.
 
-| | CircuitPython (`circuitpython/`) | Arduino (`arduino/esp_temp/`) |
+| | Arduino (`arduino/esp_temp/`) | CircuitPython (`circuitpython/`) |
 |---|---|---|
-| Edit | drag `code.py` onto the CIRCUITPY drive | recompile + reflash |
-| Status | **running now** | compiled, ready to flash |
+| Edit | recompile + reflash | drag `code.py` onto the CIRCUITPY drive |
+| Status | **running now** | ready (drop-in alternative) |
 
 ## Hardware
 - Feather ESP32-S3 ↔ SHT45 via a STEMMA QT cable (I²C, address `0x44`).

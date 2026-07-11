@@ -6,9 +6,9 @@ humidity to **Adafruit IO**, viewable on the web, on **iPhone**, and as an **App
 ## Repo layout
 ```
 esp-temp/
-├── firmware/            ESP32-S3 firmware (reads SHT45 → publishes to Adafruit IO)
-│   ├── arduino/esp_temp/    Arduino sketch (compiled, ready to flash)
-│   └── circuitpython/       code.py (currently running on the board)
+├── firmware/            ESP32-S3 firmware (reads SHT45 + MAX17048 → publishes to Adafruit IO)
+│   ├── arduino/esp_temp/    Arduino sketch (currently running on the board)
+│   └── circuitpython/       code.py (drop-in alternative)
 ├── apple/               iPhone + Apple Watch app (SwiftUI, XcodeGen)
 │   ├── project.yml          run `xcodegen generate` to create EspTemp.xcodeproj
 │   └── Sources/             Shared / App / Watch / Complication
@@ -21,8 +21,8 @@ esp-temp/
 - Feed: <https://io.adafruit.com/jonharald/feeds/temperature>
 
 ## Getting started
-- **Firmware:** see [`firmware/README.md`](firmware/README.md). The board currently runs the CircuitPython
-  version and publishes every ~30 s.
+- **Firmware:** see [`firmware/README.md`](firmware/README.md). The board currently runs the Arduino
+  version and publishes temperature, humidity + battery every ~30 s.
 - **Apple app:** see [`docs/apple-app-plan.md`](docs/apple-app-plan.md). Build with:
   ```sh
   cd apple && xcodegen generate && open EspTemp.xcodeproj
