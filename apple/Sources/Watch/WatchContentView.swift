@@ -3,6 +3,28 @@ import WidgetKit
 
 struct WatchContentView: View {
     @State private var store = TemperatureStore()
+    @State private var showBatteryVolts = false
+
+    private var batteryText: String {
+        if showBatteryVolts {
+            return store.batteryVoltage.map { String(format: "%.2f V", $0.value) } ?? "–"
+        }
+        guard let p = store.batteryPercent?.value else { return "–" }
+        return "\(Int(min(100, max(0, p.rounded())))) %"
+    }
+
+    private var batterySymbol: String {
+        guard let f = store.batteryPercent.map({ min(100, max(0, $0.value)) / 100 }) else {
+            return "battery.0percent"
+        }
+        switch f {
+        case ..<0.1: return "battery.0percent"
+        case ..<0.375: return "battery.25percent"
+        case ..<0.625: return "battery.50percent"
+        case ..<0.875: return "battery.75percent"
+        default: return "battery.100percent"
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -20,6 +42,22 @@ struct WatchContentView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .listRowBackground(Color.clear)
+
+                    if store.batteryPercent != nil || store.batteryVoltage != nil {
+                        Button {
+                            withAnimation(.snappy) { showBatteryVolts.toggle() }
+                        } label: {
+                            HStack {
+                                Label("Batteri", systemImage: batterySymbol)
+                                Spacer()
+                                Text(batteryText)
+                                    .foregroundStyle(.secondary)
+                                    .contentTransition(.numericText())
+                            }
+                            .font(.footnote)
+                        }
+                        .buttonStyle(.plain)
+                    }
 
                     if let updated = store.temperature?.createdAt {
                         Text("Oppdatert \(updated.formatted(date: .omitted, time: .shortened))")

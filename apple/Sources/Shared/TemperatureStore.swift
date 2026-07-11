@@ -15,6 +15,8 @@ public final class TemperatureStore {
 
     public private(set) var temperature: FeedReading?
     public private(set) var humidity: FeedReading?
+    public private(set) var batteryPercent: FeedReading?
+    public private(set) var batteryVoltage: FeedReading?
     public private(set) var history: [FeedReading] = []
     public private(set) var state: LoadState = .idle
     public private(set) var hasCredentials: Bool = CredentialStore.load() != nil
@@ -34,9 +36,13 @@ public final class TemperatureStore {
             async let temp = client.latest(feed: creds.temperatureFeed)
             async let hum = try? client.latest(feed: creds.humidityFeed)
             async let hist = try? client.history(feed: creds.temperatureFeed, limit: 200)
+            async let batP = try? client.latest(feed: AppConfig.batteryPercentFeed)
+            async let batV = try? client.latest(feed: AppConfig.batteryVoltageFeed)
             temperature = try await temp
             humidity = await hum
             history = await hist ?? []
+            batteryPercent = await batP
+            batteryVoltage = await batV
             state = .loaded
         } catch {
             state = .failed(Self.describe(error))

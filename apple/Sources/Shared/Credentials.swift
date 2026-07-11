@@ -6,6 +6,8 @@ public enum AppConfig {
     public static let appGroup = "group.no.brathen.esptemp"
     public static let defaultTemperatureFeed = "temperature"
     public static let defaultHumidityFeed = "humidity"
+    public static let batteryPercentFeed = "esp-battery-pct"
+    public static let batteryVoltageFeed = "esp-battery-v"
 }
 
 public struct Credentials: Sendable, Equatable {
