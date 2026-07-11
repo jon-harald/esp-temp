@@ -26,6 +26,8 @@ AIO_KEY = os.getenv("AIO_KEY")
 
 TEMP_TOPIC = "%s/feeds/temperature" % AIO_USERNAME
 HUM_TOPIC = "%s/feeds/humidity" % AIO_USERNAME
+BATT_V_TOPIC = "%s/feeds/esp-battery-v" % AIO_USERNAME
+BATT_PCT_TOPIC = "%s/feeds/esp-battery-pct" % AIO_USERNAME
 
 # ---- Power the STEMMA QT / I2C port and NeoPixel (defensive) ----
 for _name in ("I2C_POWER", "NEOPIXEL_POWER"):
@@ -89,6 +91,16 @@ status(YELLOW)
 sht = adafruit_sht4x.SHT4x(i2c, address=sht_addr)
 sht.mode = adafruit_sht4x.Mode.NOHEAT_HIGHPRECISION
 print("Found SHT4x at", hex(sht_addr), "serial:", hex(sht.serial_number))
+
+# ---- Onboard MAX17048 LiPo fuel gauge (I2C 0x36) ----
+battery = None
+try:
+    import adafruit_max1704x
+
+    battery = adafruit_max1704x.MAX17048(i2c)
+    print("MAX17048 battery: %.2f V, %.1f %%" % (battery.cell_voltage, battery.cell_percent))
+except Exception as _e:  # noqa: BLE001
+    print("MAX17048 battery monitor not available:", _e)
 
 
 def connect_wifi():
@@ -167,6 +179,15 @@ while True:
         print("Temp: %.2f C   RH: %.2f %%" % (temperature, humidity))
         mqtt_client.publish(TEMP_TOPIC, temperature)
         mqtt_client.publish(HUM_TOPIC, humidity)
+        if battery is not None:
+            try:
+                vbat = round(battery.cell_voltage, 2)
+                soc = round(battery.cell_percent, 1)
+                print("Batt: %.2f V   %.1f %%" % (vbat, soc))
+                mqtt_client.publish(BATT_V_TOPIC, vbat)
+                mqtt_client.publish(BATT_PCT_TOPIC, soc)
+            except Exception as e:  # noqa: BLE001
+                print("Battery read error:", e)
         status(GREEN)
     except Exception as e:  # noqa: BLE001
         print("Loop error:", e)

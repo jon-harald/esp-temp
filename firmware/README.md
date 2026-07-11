@@ -1,8 +1,9 @@
 # Firmware — ESP32-S3 Feather + SHT45 → Adafruit IO
 
-Reads temperature + humidity from an **Adafruit SHT45** (product 5665) over STEMMA QT (I²C) on an
-**Adafruit Feather ESP32-S3** (4 MB Flash / 2 MB PSRAM, product 5477) and publishes to **Adafruit IO**
-over MQTT/TLS every 30 s.
+Reads temperature + humidity from an **Adafruit SHT45** (product 5665) over STEMMA QT (I²C) plus
+**battery voltage + %** from the board's onboard **MAX17048** fuel gauge, on an **Adafruit Feather
+ESP32-S3** (4 MB Flash / 2 MB PSRAM, product 5477), and publishes to **Adafruit IO** over MQTT/TLS
+every 30 s. Feeds: `temperature`, `humidity`, `esp-battery-v`, `esp-battery-pct`.
 
 - Dashboard: <https://io.adafruit.com/jonharald/dashboards/esp32-temperatur>
 - Raw feed:  <https://io.adafruit.com/jonharald/feeds/temperature>
@@ -18,8 +19,10 @@ wait for the SHT45 to appear before publishing.
 
 ## Hardware
 - Feather ESP32-S3 ↔ SHT45 via a STEMMA QT cable (I²C, address `0x44`).
-- Onboard **MAX17048 battery gauge is at `0x36`** — sanity check: if an I²C scan shows `0x36` but not
-  `0x44`, the bus is fine and the SHT45 cable/connection is the problem (this bit us once — cable was loose).
+- Onboard **MAX17048 LiPo fuel gauge at I²C `0x36`** — reports cell voltage + state-of-charge (no wiring;
+  it's on the built-in bus). On USB power with no battery it reads the VBAT rail (~4.2 V / >100 %).
+  Also a handy sanity check: if an I²C scan shows `0x36` but not `0x44`, the bus is fine and the SHT45
+  cable/connection is the problem (this bit us once — cable was loose).
 - STEMMA QT / I²C power is gated by **GPIO7** (must be HIGH; Arduino core does it in `initVariant()`,
   CircuitPython `code.py` sets `board.I2C_POWER`).
 - NeoPixel status: blue=boot, yellow=connecting, green=publishing OK, red=error/waiting for sensor.
@@ -45,8 +48,13 @@ Secrets in `arduino/esp_temp/secrets.h` (git-ignored; template `secrets.h.exampl
 
 ## CircuitPython: install (currently running)
 CircuitPython 10.2.1. `code.py` + libs live on the CIRCUITPY drive. Required libs in `CIRCUITPY/lib/`:
-`adafruit_sht4x`, `adafruit_minimqtt`, `adafruit_connection_manager`, `adafruit_requests`,
-`adafruit_ticks`, `adafruit_ntp`, `neopixel`, `adafruit_pixelbuf`.
+`adafruit_sht4x`, `adafruit_max1704x`, `adafruit_bus_device`, `adafruit_register`, `adafruit_minimqtt`,
+`adafruit_connection_manager`, `adafruit_requests`, `adafruit_ticks`, `adafruit_ntp`, `neopixel`,
+`adafruit_pixelbuf`.
+
+> **If CIRCUITPY mounts read-only** (macOS fskit can latch a FAT "dirty bit" after interrupted writes,
+> and the board may stop exposing the drive): **power-cycle the board** (unplug/replug USB) — a clean
+> re-mount clears it. Copy files with `COPYFILE_DISABLE=1 cp -X …` to avoid `._` resource-fork churn.
 Secrets in `CIRCUITPY/settings.toml` (template `circuitpython/settings.toml.example`).
 
 ### MiniMQTT + Adafruit IO TLS gotchas (handled in `code.py`)

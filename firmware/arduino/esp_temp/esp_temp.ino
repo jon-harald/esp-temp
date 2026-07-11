@@ -18,6 +18,7 @@
 #include <WiFiClientSecure.h>
 #include <Wire.h>
 #include <Adafruit_SHT4x.h>
+#include <Adafruit_MAX1704X.h>
 #include <Adafruit_MQTT.h>
 #include <Adafruit_MQTT_Client.h>
 #include <Adafruit_NeoPixel.h>
@@ -34,8 +35,12 @@ Adafruit_MQTT_Client mqtt(&net, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KE
 // Feed topics: <username>/feeds/<feed-key>  (feeds auto-create on first publish)
 Adafruit_MQTT_Publish tempFeed = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/temperature");
 Adafruit_MQTT_Publish humFeed  = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/humidity");
+Adafruit_MQTT_Publish battVFeed   = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/esp-battery-v");
+Adafruit_MQTT_Publish battPctFeed = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/esp-battery-pct");
 
 Adafruit_SHT4x sht4;
+Adafruit_MAX17048 maxlipo;   // onboard LiPo fuel gauge (I2C 0x36)
+bool haveBattery = false;
 Adafruit_NeoPixel pixel(1, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
 
 static const uint32_t C_BLUE   = 0x000030;
@@ -106,6 +111,13 @@ void setup() {
   sht4.setPrecision(SHT4X_HIGH_PRECISION);
   sht4.setHeater(SHT4X_NO_HEATER);
 
+  if (maxlipo.begin()) {
+    haveBattery = true;
+    Serial.printf("MAX17048 battery: %.2f V, %.1f %%\n", maxlipo.cellVoltage(), maxlipo.cellPercent());
+  } else {
+    Serial.println("MAX17048 battery monitor not found.");
+  }
+
   connectWiFi();
   net.setInsecure();                         // skip TLS cert validation (simple + reliable)
   connectMQTT();
@@ -134,6 +146,13 @@ void loop() {
         bool ok1 = tempFeed.publish(tC);
         bool ok2 = humFeed.publish(rh);
         ok = ok1 && ok2;
+        if (haveBattery) {
+          float vbat = maxlipo.cellVoltage();
+          float soc = maxlipo.cellPercent();
+          Serial.printf("Batt: %.2f V %.1f %%   ", vbat, soc);
+          battVFeed.publish(vbat);
+          battPctFeed.publish(soc);
+        }
       }
       if (ok) { Serial.println("-> published to Adafruit IO"); setPixel(C_GREEN); }
       else    { Serial.println("-> publish FAILED (will retry)"); setPixel(C_RED); }
