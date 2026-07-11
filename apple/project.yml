@@ -29,7 +29,7 @@ targets:
         GENERATE_INFOPLIST_FILE: "NO"
         PRODUCT_BUNDLE_IDENTIFIER: no.brathen.esptemp
         CODE_SIGN_ENTITLEMENTS: Supporting/EspTemp.entitlements
-        TARGETED_DEVICE_FAMILY: "1,2"
+        TARGETED_DEVICE_FAMILY: "1"
     info:
       path: Supporting/App-Info.plist
       properties:
@@ -71,7 +71,7 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: "NO"
-        PRODUCT_BUNDLE_IDENTIFIER: no.brathen.esptemp.watchkitapp.complication
+        PRODUCT_BUNDLE_IDENTIFIER: no.brathen.esptemp.watchkitapp.tempwidget
         CODE_SIGN_ENTITLEMENTS: Supporting/EspTempComplication.entitlements
     info:
       path: Supporting/Complication-Info.plist

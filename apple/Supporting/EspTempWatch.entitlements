@@ -6,9 +6,5 @@
     <array>
         <string>group.no.brathen.esptemp</string>
     </array>
-    <key>keychain-access-groups</key>
-    <array>
-        <string>group.no.brathen.esptemp</string>
-    </array>
 </dict>
 </plist>

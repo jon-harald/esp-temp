@@ -29,7 +29,7 @@ struct SettingsView: View {
                         .autocorrectionDisabled()
                 }
                 Section {
-                    Text("Nøkkelen lagres i Keychain og deles med klokke-komplikasjonen via App Group.")
+                    Text("Nøkkelen lagres og deles med klokke-komplikasjonen via App Group.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
