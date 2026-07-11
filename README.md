@@ -7,8 +7,7 @@ humidity to **Adafruit IO**, viewable on the web, on **iPhone**, and as an **App
 ```
 esp-temp/
 ├── firmware/            ESP32-S3 firmware (reads SHT45 + MAX17048 → publishes to Adafruit IO)
-│   ├── arduino/esp_temp/    Arduino sketch (currently running on the board)
-│   └── circuitpython/       code.py (drop-in alternative)
+│   └── arduino/esp_temp/    Arduino sketch (running on the board)
 ├── apple/               iPhone + Apple Watch app (SwiftUI, XcodeGen)
 │   ├── project.yml          run `xcodegen generate` to create EspTemp.xcodeproj
 │   └── Sources/             Shared / App / Watch / Complication
