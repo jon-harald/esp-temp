@@ -4,7 +4,7 @@
 
 // Bump this on every release. The device pulls a new build whenever the OTA
 // manifest's "version" differs from this string.
-#define FIRMWARE_VERSION "1.1.0"
+#define FIRMWARE_VERSION "1.1.1"
 
 // ---- Adafruit IO ----
 #define AIO_SERVER   "io.adafruit.com"

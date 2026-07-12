@@ -1,6 +1,6 @@
 {
-  "version": "1.1.0",
-  "url": "https://github.com/jon-harald/esp-temp/releases/download/fw-1.1.0/esp_temp.ino.bin",
-  "md5": "316de31fb9a1cc535c27a84934819de5",
-  "notes": "adaptive deep sleep + pull-based OTA + NVS credentials"
+  "version": "1.1.1",
+  "url": "https://github.com/jon-harald/esp-temp/releases/download/fw-1.1.1/esp_temp.ino.bin",
+  "md5": "4672e924c3d062ed43926decfae97522",
+  "notes": "OTA round-trip test"
 }
