@@ -1,6 +1,9 @@
 # ---- Secrets (never commit) ----
 firmware/arduino/esp_temp/secrets.h
 apple/**/Secrets.xcconfig
+# Firebase iOS config (per-project; download from the Firebase console).
+# A committed template lives at apple/GoogleService-Info.plist.example.
+apple/Sources/App/GoogleService-Info.plist
 
 # ---- Firmware build output ----
 build/

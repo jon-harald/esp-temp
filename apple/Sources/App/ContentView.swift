@@ -4,14 +4,18 @@ import WidgetKit
 
 struct ContentView: View {
     @State private var store = TemperatureStore()
+    @State private var devices = DeviceStore()
     @State private var showingSettings = false
+    @State private var showingAccount = false
     @State private var showBatteryVolts = false
+    @State private var path = NavigationPath()
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(AuthManager.self) private var auth
 
     private let refreshInterval: Duration = .seconds(30)
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             Group {
                 if !store.hasCredentials {
                     needsSetup
@@ -19,8 +23,17 @@ struct ContentView: View {
                     content
                 }
             }
+            .environment(devices)
             .navigationTitle("Temperatur")
+            .navigationDestination(for: Device.self) { device in
+                ThresholdsView(device: device)
+            }
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button { showingAccount = true } label: {
+                        Image(systemName: "person.crop.circle")
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { showingSettings = true } label: {
                         Image(systemName: "gearshape")
@@ -33,7 +46,11 @@ struct ContentView: View {
             }) {
                 SettingsView()
             }
+            .sheet(isPresented: $showingAccount) {
+                AccountView().environment(auth)
+            }
             .task {
+                if let uid = auth.user?.uid { devices.start(uid: uid) }
                 await store.refresh()
                 while !Task.isCancelled {
                     try? await Task.sleep(for: refreshInterval)
@@ -43,6 +60,11 @@ struct ContentView: View {
             .refreshable { await store.refresh() }
             .onChange(of: scenePhase) { _, phase in
                 if phase == .active { Task { await store.refresh() } }
+            }
+            .onChange(of: PushService.shared.pendingDeepLinkDeviceId) { _, id in
+                guard let id, let device = devices.devices.first(where: { $0.id == id }) else { return }
+                path.append(device)
+                PushService.shared.pendingDeepLinkDeviceId = nil
             }
         }
     }
@@ -73,6 +95,18 @@ struct ContentView: View {
                 }
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
+            }
+
+            Section("Varsling") {
+                if devices.devices.isEmpty {
+                    Text("Ingen enheter registrert på kontoen din ennå.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(devices.devices) { device in
+                        NavigationLink(value: device) { thresholdRow(device) }
+                    }
+                }
             }
 
             Section {
@@ -164,6 +198,22 @@ struct ContentView: View {
         }
     }
 
+    private func thresholdRow(_ device: Device) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(device.name)
+            if device.thresholds.enabled {
+                Text(String(format: "Varsler under %.0f° / over %.0f°",
+                            device.thresholds.minC, device.thresholds.maxC))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                Text("Varsler av")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
     private func readingTile(title: String, value: String, systemImage: String, tint: Color) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Label(title, systemImage: systemImage)
@@ -182,4 +232,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+        .environment(AuthManager())
 }
