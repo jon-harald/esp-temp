@@ -23,10 +23,11 @@ struct ContentView: View {
                     content
                 }
             }
-            .environment(devices)
             .navigationTitle("Temperatur")
             .navigationDestination(for: Device.self) { device in
-                ThresholdsView(device: device)
+                // Inject here, not on an inner view: navigationDestination content is
+                // hoisted to the stack and does NOT inherit environment set below it.
+                ThresholdsView(device: device).environment(devices)
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
