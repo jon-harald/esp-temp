@@ -50,12 +50,32 @@ targets:
           - remote-notification
     dependencies:
       - target: EspTempWatch
+      - target: EspTempWidget
       - package: Firebase
         product: FirebaseAuth
       - package: Firebase
         product: FirebaseFirestore
       - package: Firebase
         product: FirebaseMessaging
+
+  # ---------- iOS widget (WidgetKit extension: home screen + Lock Screen) ----------
+  EspTempWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - Sources/Shared
+      - Sources/Widget
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: "NO"
+        PRODUCT_BUNDLE_IDENTIFIER: no.brathen.esptemp.widget
+        CODE_SIGN_ENTITLEMENTS: Supporting/EspTempWidget.entitlements
+    info:
+      path: Supporting/Widget-Info.plist
+      properties:
+        CFBundleDisplayName: Temp
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
 
   # ---------- watchOS app ----------
   EspTempWatch:

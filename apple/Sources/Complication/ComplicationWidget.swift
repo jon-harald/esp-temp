@@ -1,67 +1,8 @@
 import WidgetKit
 import SwiftUI
 
-struct TempEntry: TimelineEntry {
-    let date: Date
-    let temperature: Double?
-    let humidity: Double?
-    let readingDate: Date?
-}
-
-struct TempProvider: TimelineProvider {
-    func placeholder(in context: Context) -> TempEntry {
-        TempEntry(date: .now, temperature: 21.5, humidity: 40, readingDate: .now)
-    }
-
-    func getSnapshot(in context: Context, completion: @escaping (TempEntry) -> Void) {
-        Task { completion(await fetchEntry()) }
-    }
-
-    func getTimeline(in context: Context, completion: @escaping (Timeline<TempEntry>) -> Void) {
-        Task {
-            let entry = await fetchEntry()
-            // Refresh roughly every 20 minutes (watchOS budgets background refreshes).
-            let next = Date.now.addingTimeInterval(20 * 60)
-            completion(Timeline(entries: [entry], policy: .after(next)))
-        }
-    }
-
-    private func fetchEntry() async -> TempEntry {
-        guard let creds = CredentialStore.load() else {
-            return TempEntry(date: .now, temperature: nil, humidity: nil, readingDate: nil)
-        }
-        let client = AdafruitIOClient(username: creds.username, apiKey: creds.apiKey)
-        let temp = try? await client.latest(feed: creds.temperatureFeed)
-        let hum = try? await client.latest(feed: creds.humidityFeed)
-        return TempEntry(date: .now, temperature: temp?.value, humidity: hum?.value, readingDate: temp?.createdAt)
-    }
-}
-
-/// Ring fills over this window since the last reading; resets when fresher data arrives.
-private let staleWindow: TimeInterval = 30 * 60
-
-/// Temperature colour bands: green 12–20, orange 8–12 & 20–27, red <8 & >27.
-/// Renders literally in full-colour contexts (Smart Stack, gallery); on an
-/// accented watch face it degrades to the face tint — the symbol below carries
-/// a coarse cue in that case.
-private func tempColor(_ c: Double?) -> Color {
-    guard let c else { return .gray }
-    switch c {
-    case ..<8:  return .red
-    case ..<12: return .orange
-    case ..<20: return .green
-    case ...27: return .orange
-    default:    return .red
-    }
-}
-
-/// A shape cue that survives monochrome rendering.
-private func tempSymbol(_ c: Double?) -> String {
-    guard let c else { return "thermometer.medium" }
-    if c < 12 { return "thermometer.low" }
-    if c < 20 { return "thermometer.medium" }
-    return "thermometer.high"
-}
+// TempEntry, TempProvider, tempColor, tempSymbol and staleWindow live in
+// Sources/Shared/TempWidgetShared.swift (shared with the iOS widget).
 
 struct ComplicationView: View {
     @Environment(\.widgetFamily) private var family
