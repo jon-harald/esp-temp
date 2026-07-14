@@ -4,6 +4,11 @@ apple/**/Secrets.xcconfig
 # Firebase iOS config (per-project; download from the Firebase console).
 # A committed template lives at apple/GoogleService-Info.plist.example.
 apple/Sources/App/GoogleService-Info.plist
+# Firebase Android config (per-project; download from the Firebase console).
+# A committed template lives at android/app/google-services.json.example.
+android/app/google-services.json
+# Android release signing.
+android/keystore.properties
 
 # ---- Firmware build output ----
 build/

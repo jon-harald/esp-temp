@@ -2,8 +2,9 @@ import Foundation
 import Observation
 import FirebaseFirestore
 
-/// Live list of the signed-in user's devices (Firestore `devices where ownerUid == uid`)
-/// plus threshold writes. iOS-only (Sources/App).
+/// Live list of the signed-in user's devices (Firestore
+/// `devices where memberUids array-contains uid`) plus threshold writes. iOS-only
+/// (Sources/App). Membership is server-maintained; `uid` is enough for this query.
 @Observable
 @MainActor
 final class DeviceStore {
@@ -16,7 +17,7 @@ final class DeviceStore {
         stop()
         listener = Firestore.firestore()
             .collection("devices")
-            .whereField("ownerUid", isEqualTo: uid)
+            .whereField("memberUids", arrayContains: uid)
             .addSnapshotListener { [weak self] snapshot, error in
                 Task { @MainActor in self?.handle(snapshot: snapshot, error: error) }
             }
@@ -45,7 +46,8 @@ final class DeviceStore {
                         minC: (t["minC"] as? NSNumber)?.doubleValue ?? DeviceThresholds.fallback.minC,
                         maxC: (t["maxC"] as? NSNumber)?.doubleValue ?? DeviceThresholds.fallback.maxC,
                         enabled: (t["enabled"] as? Bool) ?? DeviceThresholds.fallback.enabled
-                    )
+                    ),
+                    ownerAccountId: data["ownerAccountId"] as? String
                 )
             }
             .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }

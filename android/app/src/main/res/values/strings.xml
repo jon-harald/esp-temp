@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Temp</string>
+
+    <!-- FCM channel: id MUST equal the Cloud Function's android.notification.channelId. -->
+    <string name="temp_alerts_channel_id">temp-alerts</string>
+    <string name="temp_alerts_channel_name">Temperaturvarsler</string>
+    <string name="temp_alerts_channel_desc">Varsler når temperaturen går over eller under grensene dine.</string>
+
+    <!-- Generelt -->
+    <string name="loading">Laster …</string>
+    <string name="settings">Innstillinger</string>
+    <string name="account">Konto</string>
+    <string name="save">Lagre</string>
+    <string name="saved">Lagret</string>
+    <string name="sign_out">Logg ut</string>
+    <string name="cancel">Avbryt</string>
+
+    <!-- Innlogging -->
+    <string name="sign_in_with_google">Logg inn med Google</string>
+    <string name="email">E-post</string>
+    <string name="password">Passord</string>
+    <string name="sign_in">Logg inn</string>
+    <string name="sign_up">Opprett konto</string>
+    <string name="toggle_to_sign_up">Ny bruker? Opprett konto</string>
+    <string name="toggle_to_sign_in">Har du konto? Logg inn</string>
+    <string name="verify_email_sent">Vi har sendt en bekreftelseslenke til e-posten din.</string>
+
+    <!-- Dashboard -->
+    <string name="title_dashboard">Temperatur</string>
+    <string name="tile_temperature">Temperatur</string>
+    <string name="tile_humidity">Fuktighet</string>
+    <string name="section_alerts">Varsling</string>
+    <string name="no_devices">Ingen enheter registrert på kontoen din ennå.</string>
+    <string name="alerts_off">Varsler av</string>
+    <string name="battery">Batteri</string>
+    <string name="battery_tap_volts">Trykk for spenning (V)</string>
+    <string name="battery_tap_percent">Trykk for prosent</string>
+    <string name="chart_last_24h">Siste 24 t</string>
+    <string name="last_updated">Sist oppdatert %1$s</string>
+    <string name="setup_needed_title">Sett opp Adafruit IO</string>
+    <string name="setup_needed_body">Legg inn brukernavn og AIO-nøkkel for å hente data.</string>
+    <string name="open_settings">Åpne innstillinger</string>
+
+    <!-- Innstillinger -->
+    <string name="aio_username">Adafruit IO-brukernavn</string>
+    <string name="aio_key">AIO-nøkkel</string>
+    <string name="feed_temperature">Feed for temperatur</string>
+    <string name="feed_humidity">Feed for fuktighet</string>
+
+    <!-- Thresholds -->
+    <string name="alerts_on">Varsler på</string>
+    <string name="alerts_hint">Få push når temperaturen går over maks eller under min.</string>
+    <string name="section_limits">Grenser</string>
+    <string name="max_label">Maks (for varmt)</string>
+    <string name="min_label">Min (for kaldt)</string>
+    <string name="min_below_max">Min må være lavere enn maks.</string>
+    <string name="section_now">Nå</string>
+    <string name="status">Status</string>
+    <string name="status_high">For varmt 🔥</string>
+    <string name="status_low">For kaldt ❄️</string>
+    <string name="status_normal">Normal ✅</string>
+    <string name="read_at">Avlest %1$s</string>
+
+    <!-- Konto -->
+    <string name="user_id">Bruker-ID</string>
+    <string name="copy">Kopier</string>
+    <string name="copied">Kopiert</string>
+    <string name="share_access">Del tilgang</string>
+    <string name="share_access_hint">Gi en annen konto tilgang via e-post.</string>
+    <string name="share">Del</string>
+</resources>

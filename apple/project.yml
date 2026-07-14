@@ -57,6 +57,8 @@ targets:
         product: FirebaseFirestore
       - package: Firebase
         product: FirebaseMessaging
+      - package: Firebase
+        product: FirebaseFunctions
 
   # ---------- iOS widget (WidgetKit extension: home screen + Lock Screen) ----------
   EspTempWidget:

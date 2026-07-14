@@ -11,7 +11,10 @@ import {
   type Status,
   type Thresholds,
 } from "./alerting/evaluate";
-import { sendToUser, type PushContent } from "./fcm/send";
+import { sendToUids, type PushContent } from "./fcm/send";
+
+export { resolveAccount } from "./account/resolve";
+export { shareDevice, unshareDevice } from "./sharing/share";
 
 const ADAFRUIT_IO_KEY = defineSecret("ADAFRUIT_IO_KEY");
 
@@ -61,10 +64,17 @@ async function pollOneDevice(
   secrets: Secrets,
   now: number
 ): Promise<void> {
+  // Recipients come from the server-maintained memberUids cache (union of every
+  // uid across the device's member accounts). Fall back to the legacy ownerUid
+  // for any doc not yet migrated.
+  const memberUids: string[] = Array.isArray(device.memberUids)
+    ? device.memberUids
+    : [];
   const ownerUid: string | undefined = device.ownerUid;
+  const recipients = memberUids.length > 0 ? memberUids : ownerUid ? [ownerUid] : [];
   const thresholds = device.thresholds as Thresholds | undefined;
-  if (!ownerUid || !thresholds) {
-    logger.warn(`Device ${deviceId} missing ownerUid/thresholds; skipping`);
+  if (recipients.length === 0 || !thresholds) {
+    logger.warn(`Device ${deviceId} missing recipients/thresholds; skipping`);
     return;
   }
 
@@ -99,8 +109,8 @@ async function pollOneDevice(
 
   if (decision.notify) {
     update.lastNotifiedAt = now;
-    await sendToUser(
-      ownerUid,
+    await sendToUids(
+      recipients,
       buildContent(device.name ?? "Sensor", decision.notify.kind, temp.value, thresholds, deviceId)
     );
     logger.info(`Device ${deviceId}: notified ${decision.notify.kind} @ ${temp.value}°C`);

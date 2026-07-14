@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Compose drives the real theme (ui/theme/Theme.kt). These are the platform
+         shells: a base app theme and a splash that hands off to MainActivity. -->
+    <style name="Theme.EspTemp" parent="android:Theme.Material.NoActionBar" />
+
+    <style name="Theme.EspTemp.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/brand_background</item>
+        <item name="postSplashScreenTheme">@style/Theme.EspTemp</item>
+    </style>
+</resources>

@@ -31,9 +31,14 @@ final class AuthManager {
         phase = user == nil ? .signedOut : .signedIn
         if user != nil {
             Task {
+                // Unify this login into its canonical account (same verified email
+                // ⇒ same account) before anything account-scoped.
+                await AccountService.shared.resolve()
                 await PushService.shared.requestAuthorization()
                 await PushService.shared.uploadCurrentToken()
             }
+        } else {
+            AccountService.shared.clear()
         }
     }
 
@@ -90,7 +95,10 @@ final class AuthManager {
     func signUp(email: String, password: String) async {
         errorMessage = nil
         do {
-            try await Auth.auth().createUser(withEmail: email, password: password)
+            let result = try await Auth.auth().createUser(withEmail: email, password: password)
+            // Verified email is required before the account is unified / granted
+            // access, so kick off the confirmation link right away.
+            try? await result.user.sendEmailVerification()
         } catch {
             errorMessage = error.localizedDescription
         }

@@ -46,20 +46,38 @@ firebase functions:secrets:set ADAFRUIT_IO_KEY   # lim inn jonharald sin AIO-nø
 Nøkkelen ligger kun i Secret Manager — aldri i appen.
 
 ## 6. Deploy regler + funksjoner
+
+Konto-/medlemskaps-modellen krever **streng rekkefølge**: migrer eksisterende enheter
+_før_ reglene deployes, ellers blir alle enheter ulesbare (reglene krever `memberUids`,
+og eier-sjekkene krever `users/{uid}.accountId`).
+
 ```bash
 cd functions && npm install          # første gang
+
+# (1) MIGRER først — fyller accounts/*, users.accountId, devices.ownerAccountId/
+#     memberAccountIds/memberUids fra legacy ownerUid.
+GOOGLE_APPLICATION_CREDENTIALS=./sa.json GCLOUD_PROJECT=temptracker-54c75 \
+  node scripts/migrate-memberUids.mjs
+
 cd ..
+# (2) deretter regler, (3) deretter funksjoner
 firebase deploy --only firestore:rules
 firebase deploy --only functions
 ```
-`pollDevices` kjører i `europe-west1` hvert minutt.
+`pollDevices` kjører i `europe-west1` hvert minutt. Callables (`resolveAccount`,
+`shareDevice`, `unshareDevice`) deployes samtidig, også i `europe-west1`.
+
+Sett også Firebase Auth til å tillate flere kontoer per e-post:
+**Authentication → Settings → User account linking → «Create multiple accounts for each
+identity provider»** (uten dette kolliderer Google-innlogging med en eksisterende
+Apple-konto på samme e-post).
 
 ## 7. Seed enhets-dokumenter (v1: dine egne enheter)
 For hver fysiske sensor, opprett et dokument `devices/{deviceId}` (konsoll eller script) med
 `ownerUid` = din Firebase Auth-uid (finnes under Authentication → Users etter første innlogging):
 
 ```jsonc
-// devices/bilen
+// devices/bilen  (seed disse feltene)
 {
   "ownerUid": "<din-uid>",
   "name": "Bilen",
@@ -68,9 +86,21 @@ For hver fysiske sensor, opprett et dokument `devices/{deviceId}` (konsoll eller
   "thresholds": { "minC": 5, "maxC": 30, "enabled": true }
 }
 ```
+Kjør deretter migreringsskriptet (steg 6.1) — det fyller automatisk `ownerAccountId`,
+`memberAccountIds` og `memberUids` fra `ownerUid`. Klienten leser enheter via
+`memberUids array-contains uid`.
+
 - `feedKey` er feed-nøkkelen, evt. gruppe-kvalifisert (`default.temperature`).
 - `state/current` opprettes automatisk av funksjonen ved første poll.
 - Grensene kan endres fra appen etterpå; `enabled: false` skrur av varsling.
+
+### Identitet + deling
+- **Samme verifiserte e-post = samme konto:** logger du inn med Apple (iOS) og Google
+  (Android) på samme e-post, samler `resolveAccount` begge innlogginger til én konto
+  automatisk (ingen manuell handling). Android ser da dine enheter uten deling.
+- **Ulik e-post:** eier deler eksplisitt med `shareDevice`-callable, eller admin kjører
+  `node scripts/migrate-memberUids.mjs --device <id> --add-email <e-post>`
+  (evt. `--add-uid <uid>`).
 
 ## 8. Bygg appen til en fysisk enhet
 1. `xcodegen generate` i `apple/` (etter at plist-en er på plass).

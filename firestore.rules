@@ -1,35 +1,79 @@
 rules_version = '2';
 
-// Multi-tenant, owner-only access. The Cloud Function uses the Admin SDK, which
-// bypasses these rules entirely — so alert state can be server-owned while still
-// being readable (never writable) by the device owner from the client.
+// Account-based, multi-user access. A person's logins (uids) are unified into one
+// `accounts/{id}` by verified email (see functions/src/account/resolve.ts). Device
+// access is authoritative on `memberAccountIds` but enforced here via the
+// server-maintained `memberUids` cache, so the hot read/threshold paths stay
+// uid-keyed and need no get(). The Cloud Function uses the Admin SDK, which
+// bypasses these rules — so accounts, memberships and alert state are server-owned
+// while still being readable by the people they belong to.
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // A user's own profile + their FCM tokens.
+    // The account a login belongs to (server-written on the user doc).
+    function callerAccountId() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.accountId;
+    }
+
+    // A user's profile doc is server-owned (holds accountId). Their FCM tokens
+    // stay client-writable. Subcollections do NOT inherit the parent match.
     match /users/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read:  if request.auth != null && request.auth.uid == uid;
+      allow write: if false; // accountId is server-only (prevents joining another account)
 
       match /fcmTokens/{token} {
         allow read, write: if request.auth != null && request.auth.uid == uid;
       }
     }
 
-    // Devices are owned by exactly one user.
-    match /devices/{deviceId} {
-      allow read:   if request.auth != null && resource.data.ownerUid == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.ownerUid == request.auth.uid;
-      allow update: if request.auth != null
-                    && resource.data.ownerUid == request.auth.uid
-                    && request.resource.data.ownerUid == resource.data.ownerUid; // owner is immutable
-      allow delete: if request.auth != null && resource.data.ownerUid == request.auth.uid;
+    // Accounts: a member may read its own account (profile/billing); never writable
+    // from a client. resolveAccount / shareDevice (Admin SDK) own all writes.
+    match /accounts/{accountId} {
+      allow read:  if request.auth != null && request.auth.uid in resource.data.uids;
+      allow write: if false;
+    }
 
-      // Server-owned alert state. Subcollections do NOT inherit the parent match,
-      // so this block is explicit. Owner may read; no client may ever write
+    // Devices: readable by any member; owner (account) manages the rest.
+    match /devices/{deviceId} {
+      // Any member may read the device.
+      allow read: if request.auth != null
+                  && request.auth.uid in resource.data.memberUids;
+
+      // In-app creation is not used today (devices are server-seeded). Allowed only
+      // as a self-owned create for possible future use: creator's account is sole
+      // owner+member, and the derived caches start with just the creator.
+      allow create: if request.auth != null
+                    && request.resource.data.ownerAccountId == callerAccountId()
+                    && request.resource.data.memberAccountIds.hasOnly([request.resource.data.ownerAccountId])
+                    && request.resource.data.memberUids.hasOnly([request.auth.uid]);
+
+      // Updates: ownership + membership fields are never client-writable.
+      //  - any member may change ONLY `thresholds` (get()-free hot path)
+      //  - the owner account may ALSO change `name`
+      allow update: if request.auth != null
+                    && request.auth.uid in resource.data.memberUids
+                    && request.resource.data.ownerAccountId == resource.data.ownerAccountId
+                    && request.resource.data.memberAccountIds == resource.data.memberAccountIds
+                    && request.resource.data.memberUids == resource.data.memberUids
+                    && (
+                         request.resource.data.diff(resource.data)
+                           .affectedKeys().hasOnly(['thresholds'])
+                         ||
+                         ( callerAccountId() == resource.data.ownerAccountId
+                           && request.resource.data.diff(resource.data)
+                                .affectedKeys().hasOnly(['thresholds', 'name']) )
+                       );
+
+      // Only the owner account may delete.
+      allow delete: if request.auth != null
+                    && callerAccountId() == resource.data.ownerAccountId;
+
+      // Server-owned alert state. Members may read; no client may ever write
       // (the Admin SDK in the Cloud Function bypasses this).
       match /state/{doc} {
         allow read: if request.auth != null
-                    && get(/databases/$(database)/documents/devices/$(deviceId)).data.ownerUid == request.auth.uid;
+                    && request.auth.uid in
+                       get(/databases/$(database)/documents/devices/$(deviceId)).data.memberUids;
         allow write: if false;
       }
     }
