@@ -25,6 +25,10 @@
     <string name="toggle_to_sign_up">Ny bruker? Opprett konto</string>
     <string name="toggle_to_sign_in">Har du konto? Logg inn</string>
     <string name="verify_email_sent">Vi har sendt en bekreftelseslenke til e-posten din.</string>
+    <string name="sign_in_tagline">Følg temperaturen i sanntid</string>
+    <string name="divider_or">eller</string>
+    <string name="show_password">Vis passord</string>
+    <string name="hide_password">Skjul passord</string>
 
     <!-- Dashboard -->
     <string name="title_dashboard">Temperatur</string>
