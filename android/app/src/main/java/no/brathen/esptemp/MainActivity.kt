@@ -4,7 +4,11 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import no.brathen.esptemp.data.push.EspTempMessagingService
 import no.brathen.esptemp.ui.LocalAppContainer
@@ -21,8 +25,13 @@ class MainActivity : ComponentActivity() {
         val container = (application as EspTempApp).container
         setContent {
             EspTempTheme {
-                CompositionLocalProvider(LocalAppContainer provides container) {
-                    RootScreen()
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background,
+                ) {
+                    CompositionLocalProvider(LocalAppContainer provides container) {
+                        RootScreen()
+                    }
                 }
             }
         }
