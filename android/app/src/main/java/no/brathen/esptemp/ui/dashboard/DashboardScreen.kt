@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -56,7 +55,6 @@ import kotlin.math.roundToInt
 @Composable
 fun DashboardScreen(
     onOpenSettings: () -> Unit,
-    onOpenAccount: () -> Unit,
     onOpenDevice: (String) -> Unit,
 ) {
     val vm = appViewModel {
@@ -70,11 +68,6 @@ fun DashboardScreen(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.title_dashboard)) },
-                navigationIcon = {
-                    IconButton(onClick = onOpenAccount) {
-                        Icon(Icons.Rounded.AccountCircle, stringResource(R.string.account))
-                    }
-                },
                 actions = {
                     IconButton(onClick = onOpenSettings) {
                         Icon(Icons.Rounded.Settings, stringResource(R.string.settings))
