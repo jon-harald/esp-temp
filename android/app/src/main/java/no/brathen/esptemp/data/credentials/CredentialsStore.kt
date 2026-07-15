@@ -30,6 +30,11 @@ class CredentialsStore(private val context: Context) {
         )
     }
 
+    /** Wipes stored Adafruit credentials (used on sign-out / reset). */
+    suspend fun clear() {
+        context.dataStore.edit { it.clear() }
+    }
+
     suspend fun save(
         username: String,
         apiKey: String,
